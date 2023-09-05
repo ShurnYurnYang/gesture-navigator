@@ -9,7 +9,7 @@ recording = False
 
 def writerStart():
     _, frame = cap.read()
-    scaled = imutils.resize(frame, 512, 512, inter=cv2.INTER_LANCZOS4)
+    scaled = imutils.resize(frame, 512, 512, inter=cv2.INTER_NEAREST)
     (h, w) = scaled.shape[:2]
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     global out 
@@ -23,7 +23,7 @@ else:
 while cap.isOpened():
     _, frame = cap.read()
 
-    scaled = imutils.resize(frame, 512, 512, inter=cv2.INTER_LANCZOS4)
+    scaled = imutils.resize(frame, 512, 512, inter=cv2.INTER_NEAREST)
 
     key = cv2.waitKey(1) & 0xFF
     if key == ord('a'):
