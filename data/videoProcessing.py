@@ -37,9 +37,17 @@ def rotate_frame(frame, angle):
 
     rotated_frame = imutils.rotate(frame, angle=angle)
 
-
-
     return rotated_frame
+
+def noise_correct(frame, mean, stdev):
+
+    h, w, ch = frame.shape
+
+    gaussian_noise = np.random.normal(mean, stdev, (h, w, ch))
+
+    image_noise = cv2.add(frame, gaussian_noise, dtype=cv2.CV_8U)
+
+    return image_noise
 
 for video_name in list_paths:
     video_path = os.path.join(folder_path, video_name)
@@ -54,6 +62,8 @@ for video_name in list_paths:
     rotate_frame_out = writerStart(video_name, "rotate")
     rotate_angle = np.random.randint(-20, 20)
 
+    gaussian_noise_out = writerStart(video_name, "gaussian_noise")
+
     print(f"Reading {video_name}...\n")
 
     reading = True
@@ -66,6 +76,7 @@ for video_name in list_paths:
             gamma_dark_out.write(gamma_correct(frame, 0.5))
             gaussian_blur_out.write(blur_correct(frame, 7))
             rotate_frame_out.write(rotate_frame(frame, rotate_angle))
+            gaussian_noise_out.write(noise_correct(frame, 0, 20))
         else:
             reading = False
 
@@ -77,5 +88,6 @@ for video_name in list_paths:
     gamma_dark_out.release()
     gaussian_blur_out.release()
     rotate_frame_out.release()
+    gaussian_noise_out.release()
 
 print("Video processing complete...")
