@@ -33,6 +33,14 @@ def blur_correct(frame, kernal):
 
     return blurred_frame
 
+def rotate_frame(frame, angle):
+
+    rotated_frame = imutils.rotate(frame, angle=angle)
+
+
+
+    return rotated_frame
+
 for video_name in list_paths:
     video_path = os.path.join(folder_path, video_name)
 
@@ -42,6 +50,9 @@ for video_name in list_paths:
     gamma_dark_out = writerStart(video_name, "gamma_dark")
 
     gaussian_blur_out = writerStart(video_name, "gaussian_blur")
+
+    rotate_frame_out = writerStart(video_name, "rotate")
+    rotate_angle = np.random.randint(-20, 20)
 
     print(f"Reading {video_name}...\n")
 
@@ -54,6 +65,7 @@ for video_name in list_paths:
             gamma_bright_out.write(gamma_correct(frame, 2.0))
             gamma_dark_out.write(gamma_correct(frame, 0.5))
             gaussian_blur_out.write(blur_correct(frame, 7))
+            rotate_frame_out.write(rotate_frame(frame, rotate_angle))
         else:
             reading = False
 
@@ -64,5 +76,6 @@ for video_name in list_paths:
     gamma_bright_out.release()
     gamma_dark_out.release()
     gaussian_blur_out.release()
+    rotate_frame_out.release()
 
 print("Video processing complete...")
