@@ -14,7 +14,7 @@ def writerStart(filename, operation):
     scaled = imutils.resize(frame, 512, 512, inter=cv2.INTER_NEAREST)
     (h, w) = scaled.shape[:2]
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(f'./videos/{filename}_{operation}.mp4', fourcc, 30.0, (w, h), True)
+    out = cv2.VideoWriter(f'./videos/{filename[:11]}_{operation}.mp4', fourcc, 30.0, (w, h), True)
     return out
 
 def gamma_correct(frame, gamma):
