@@ -13,7 +13,7 @@ def writerStart():
     (h, w) = scaled.shape[:2]
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     global out 
-    out = cv2.VideoWriter('capture_%03i.mp4' % count, fourcc, 30.0, (w, h), True)
+    out = cv2.VideoWriter('./videos/capture_%03i.mp4' % count, fourcc, 30.0, (w, h), True)
 
 if cap.isOpened():
    writerStart()
