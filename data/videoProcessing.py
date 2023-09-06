@@ -3,7 +3,7 @@ import cv2
 import imutils
 import numpy as np
 
-# basic idea: 1. gamma correction (light conditions) 2. blur (out of focus) 3. rotation (camera rotation) 4. noise 5. backgrounds
+# basic idea: 1. gamma correction (light conditions) 2. blur (out of focus) 3. rotation (camera rotation) 4. noise
 
 folder_path = './videos'
 
