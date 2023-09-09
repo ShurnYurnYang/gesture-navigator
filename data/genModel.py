@@ -1,10 +1,8 @@
 import os
 import cv2
 import numpy as np
-import sys
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
-import tqdm
 
 dataset_dir = './data/processed_dataset'
 num_classes = 2
@@ -59,7 +57,8 @@ labels = [label_mapping[label] for label in labels] #replace label with its inte
 labels = to_categorical(labels, num_classes=num_classes) #one hot conversion
 print("One-hot encoding complete...")
 
-frame_train, frame_val, label_train, label_val = train_test_split(data, labels, test_size=0.1, random_state=42)
+frame_train, frame_val, label_train, label_val = train_test_split(data, labels, test_size=0.2, random_state=42)
+frame_val, frame_test, label_val, label_test = train_test_split(data, labels, test_size=0.5, random_state=42)
 print("Data splitting complete...")
 
 #convert frame data and label sets into numpy arrays
@@ -69,6 +68,8 @@ label_train = np.array(label_train)
 label_val = np.array(label_val)
 
 print("Training data shape:", frame_train.shape)
+print("Training data size (MB):", frame_train.nbytes / (1024 * 1024))
 print("Validation data shape:", frame_val.shape)
+print("Validation data size (MB):", frame_val.nbytes / (1024 * 1024))
 print("Training labels shape:", label_train.shape)
 print("Validation labels shape:", label_val.shape)
