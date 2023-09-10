@@ -3,7 +3,7 @@ import imutils
 
 cap = cv2.VideoCapture(0)
 
-count = 0
+count = 45
 
 recording = False
 
