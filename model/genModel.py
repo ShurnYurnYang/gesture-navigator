@@ -92,3 +92,6 @@ print("Model training complete...")
 #Evaluate
 test_loss, test_accuracy = model.evaluate(frame_test, label_test)
 print(f"Test Loss: {test_loss}, Test Accuracy: {test_accuracy}")
+
+#Save entire model (and weights)
+model.save('./model/model.keras')
