@@ -77,15 +77,15 @@ print("Training labels shape:", label_train.shape)
 print("Validation labels shape:", label_val.shape)
 
 #       Model type: Sequential 
-#             Note: Baseline CNN with 2 convlutional layers, maxpool layer, flatten layer, 2 connected layers, softmax acvitaiton function
+#       Note: Baseline CNN with 2 convlutional layers, maxpool layer, flatten layer, 2 connected layers, softmax acvitaiton function
 model = Sequential([Conv2D(32, (3, 3), activation='relu', input_shape=(224, 224, 3)), MaxPooling2D((2, 2)), Conv2D(64, (3, 3), activation='relu'),  MaxPooling2D((2, 2)), Flatten(), Dense(64, activation='relu'), Dense(num_classes, activation='softmax')])
 
 #             Optimizer: ADAM   Loss: Categorical_crossentropy   Metrics: accuracy
-# Try: RMSprop | Lookahead | Yogi
+#             Try: RMSprop | Lookahead | Yogi
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 print("Model compilation complete...")
 
-# 10 Epoch (experiment), 32 batch size, verbose 1: 0(silent), 1(loading bar), 2(epoch no.)
+# 10 Epoch (experimental), 32 batch size, verbose 1: 0(silent), 1(loading bar), 2(epoch no.)
 history = model.fit(frame_train, label_train, validation_data=(frame_val, label_val), epochs=10, batch_size=32, verbose=1)
 print("Model training complete...")
 
