@@ -41,7 +41,7 @@ def loadframes(dataset_dir): #load frames into dataset
                 if not ret:
                     break
 
-                frame = cv2.resize(frame, (224, 224)) #Scaled down from 512x512 because of memory concerns
+                frame = cv2.resize(frame, (128, 128)) #Scaled down from 512x512 because of memory concerns
 
                 frame = preprocess_frame(frame) #Calls to normalization
 
@@ -87,7 +87,7 @@ print("Validation labels shape:", label_val.shape)
 
 #       Model type: Sequential 
 #       Note: Baseline CNN with 2 convlutional layers, maxpool layer, flatten layer, 2 connected layers, softmax acvitaiton function
-model = Sequential([Conv2D(32, (3, 3), activation='relu', input_shape=(224, 224, 3)), MaxPooling2D((2, 2)), Conv2D(64, (3, 3), activation='relu'),  MaxPooling2D((2, 2)), Flatten(), Dense(64, activation='relu'), Dense(num_classes, activation='softmax')])
+model = Sequential([Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)), MaxPooling2D((2, 2)), Conv2D(64, (3, 3), activation='relu'),  MaxPooling2D((2, 2)), Flatten(), Dense(64, activation='relu'), Dense(num_classes, activation='softmax')])
 
 #             Optimizer: ADAM   Loss: Categorical_crossentropy   Metrics: accuracy
 #             Try: RMSprop | Lookahead | Yogi
