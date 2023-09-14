@@ -75,58 +75,51 @@ def load_frame_batched(dataset_dir, batched): #a better way of doing this would 
     temp_labels = []
 
     counter = 0
+    with open('./model/data/labels/master.pkl', 'ab') as label_file:
+        with open('./model/data/frames/master.pkl', 'ab') as frame_file:
+            for label in action_labels:
+                label_dir = os.path.join(dataset_dir, label)
 
-    for label in action_labels:
-        label_dir = os.path.join(dataset_dir, label)
+                for video_file in os.listdir(label_dir): #os.listdir() here will return an empty list of list_dir points to a file instead of to the subdirectory
 
-        for video_file in os.listdir(label_dir): #os.listdir() here will return an empty list of list_dir points to a file instead of to the subdirectory
+                    counter += 1
 
-            counter += 1
+                    video_path = os.path.join(label_dir, video_file)
 
-            video_path = os.path.join(label_dir, video_file)
+                    cap = cv2.VideoCapture(video_path)
 
-            cap = cv2.VideoCapture(video_path)
+                    while True:
+                        ret, frame = cap.read()
 
-            while True:
-                ret, frame = cap.read()
+                        if not ret:
+                            break
 
-                if not ret:
-                    break
+                        frame = cv2.resize(frame, (128, 128)) #Scaled down from 512x512 because of memory concerns
 
-                frame = cv2.resize(frame, (128, 128)) #Scaled down from 512x512 because of memory concerns
+                        frame = preprocess_frame(frame) #Calls to normalization
 
-                frame = preprocess_frame(frame) #Calls to normalization
+                        temp_data.append(frame)
+                        temp_labels.append(label) #For each frame, appends the label to that frame's respective index in the labels array
+                    
+                    cap.release()
+                    
+                    print(f"Video {video_path} processed | counter is at {counter}...")
 
-                temp_data.append(frame)
-                temp_labels.append(label) #For each frame, appends the label to that frame's respective index in the labels array
-            
-            cap.release()
-            
-            print(f"Video {video_path} processed | counter is at {counter}...")
+                    if counter % batched == 0:
+                        pickle.dump(temp_data, frame_file)
+                        pickle.dump(temp_labels, label_file)
 
-            if counter % batched == 0:
-                with open('./model/data/frames/frame_list_%04i.pkl' % counter, 'wb') as frame_file:
-                    pickle.dump(temp_data, frame_file)
+                        del temp_data, temp_labels
+                        #global temp_data 
+                        temp_data = []
+                        #global temp_labels 
+                        temp_labels = []
+            if counter % 40 != 0:
+                pickle.dump(temp_data, frame_file)
+                pickle.dump(temp_labels, label_file)
 
-                with open('./model/data/labels/label_list_%04i.pkl' % counter, 'wb') as label_file:
-                    pickle.dump(temp_labels, label_file)
-
-                del temp_data, temp_labels
-                #global temp_data 
-                temp_data = []
-                #global temp_labels 
-                temp_labels = []
-
-    if counter % 40 != 0:
-        with open('./model/data/frames/frame_list_%04i.pkl' % counter, 'wb') as frame_file:
-            pickle.dump(temp_data, frame_file)
-
-        with open('./model/data/labels/label_list_%04i.pkl' % counter, 'wb') as label_file:
-            pickle.dump(temp_labels, label_file)
-
-        del temp_data, temp_labels
-
-    print("Frames written to file")
+            del temp_data, temp_labels
+            print("Frames written to file")
 
                 
 def concat_lists(list_dir):
@@ -145,15 +138,28 @@ def concat_lists(list_dir):
 
 def read_into_numpy(master_dir):
     with open(master_dir, 'rb') as file:
-        loaded_array = pickle.load(file)
-        return np.array(loaded_array)
+        #master_np = np.empty((0, 128, 128, 3))
+        master_list = []
+        while True:
+            try:
+                #np_temp = np.array(pickle.load(file))
+                #master_np = np.concatenate((master_np, np_temp), axis=0)
+                #del np_temp
+                master_list = master_list + pickle.load(file)
+            except EOFError:
+                break
+        #loaded_array = pickle.load(file)
+        #loaded_array_np = np.array(loaded_array)
+        master_np = np.array(master_list)
+        print(master_np.shape)
+        return master_np
 
 
 load_frame_batched(dataset_dir, 40)
 
-concat_lists('./model/data/frames')
+#concat_lists('./model/data/frames')
 
-concat_lists('./model/data/labels')
+#concat_lists('./model/data/labels')
 
 data = read_into_numpy('./model/data/frames/master.pkl')
 
