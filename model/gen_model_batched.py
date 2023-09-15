@@ -23,6 +23,10 @@ val_label_list = []
 test_video_path_list = []
 test_label_list = []
 
+num_train_frames = 0
+num_val_frames = 0
+num_test_frames = 0
+
 for label in dataset_dir:
         label_dir = os.path.join(dataset_dir, label)
 
@@ -30,15 +34,27 @@ for label in dataset_dir:
             video_path = os.path.join(label_dir, video_file)
 
             rand = np.random.randint(11)
-            if rand <= 8:
+            if rand <= 8: #train
                 train_video_path_list.append(video_path)
                 train_label_list.append(label)
-            elif rand == 9:
+
+                cap = cv2.VideoCapture(video_path)
+
+                num_train_frames += int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            elif rand == 9: #val
                 val_video_path_list.append(video_path)
                 val_label_list.append(label)
-            else:
+
+                cap = cv2.VideoCapture(video_path)
+
+                num_val_frames += int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            else: #test
                 test_video_path_list.append(video_path)
                 test_label_list.append(label)
+
+                cap = cv2.VideoCapture(video_path)
+
+                num_test_frames += int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 # -------------------------------------------------------------
 
 video_pointer = 0
@@ -89,3 +105,15 @@ def frame_generator(type, batch_size, binarizer):
         labels = binarizer.transform(np.array(labels))
 
         yield (np.array(images), labels)
+
+train_gen = frame_generator(type='train', batch_size=8, binarizer=lb)
+
+test_gen = frame_generator(type='test', batch_size=8, binarizer=lb)
+
+model = Sequential([Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)), MaxPooling2D((2, 2)), Conv2D(64, (3, 3), activation='relu'),  MaxPooling2D((2, 2)), Flatten(), Dense(64, activation='relu'), Dense(num_classes, activation='softmax')])
+
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+model_compile_time = time.time()
+
+history = model.fit(x=train_gen, steps_per_epoch=(), validation_data=(frame_val, label_val), epochs=10, batch_size=32, verbose=1)
+train_time = time.time()
