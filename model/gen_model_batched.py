@@ -27,7 +27,9 @@ num_train_frames = 0
 num_val_frames = 0
 num_test_frames = 0
 
-for label in dataset_dir:
+list_labels = os.listdir(dataset_dir)
+
+for label in list_labels:
         label_dir = os.path.join(dataset_dir, label)
 
         for video_file in os.listdir(label_dir): #os.listdir() here will return an empty list of list_dir points to a file instead of to the subdirectory
@@ -57,35 +59,47 @@ for label in dataset_dir:
                 num_test_frames += int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 # -------------------------------------------------------------
 
-video_pointer = 0
-label_pointer = 0
-
 lb = LabelBinarizer()
+lb.fit(list(list_labels))
 
 def preprocess_frame(frame): #Normalize pixel values (8-bit colour)
     frame = frame.astype('float32') / 255.0
 
     return frame
 
+video_pointer = 0
+
+label_pointer = 0
+
 def frame_generator(type, batch_size, binarizer):
+    global video_pointer
+    global label_pointer
+
     while True:
         images = []
         labels = []
         while len(images) < batch_size: #batch size refers to the number of videos NOT frames
-            match type:
-                case 'train': 
-                    cap = cv2.VideoCapture(train_video_path_list[video_pointer])
-                case 'val':
-                    cap = cv2.VideoCapture(val_video_path_list[video_pointer])
-                case 'test':
-                    cap = cv2.VideoCapture(test_video_path_list[video_pointer])
+            
+            #match type:
+                #case 'train': 
+                    #cap = cv2.VideoCapture(train_video_path_list[video_pointer])
+                #case 'val':
+                    #cap = cv2.VideoCapture(val_video_path_list[video_pointer])
+                #case 'test':
+                    #cap = cv2.VideoCapture(test_video_path_list[video_pointer])
 
+            if type == 'train':
+                cap = cv2.VideoCapture(train_video_path_list[video_pointer])
+            elif type == 'val':
+                cap = cv2.VideoCapture(val_video_path_list[video_pointer])
+            else:
+                cap = cv2.VideoCapture(test_video_path_list[video_pointer])
             while True:
                 ret, frame = cap.read()
 
                 if not ret:
-                    label_pointer += 1
                     video_pointer += 1
+                    label_pointer += 1
                     break
 
                 frame = cv2.resize(frame, (128, 128)) #Scaled down from 512x512 because of memory concerns
@@ -94,26 +108,34 @@ def frame_generator(type, batch_size, binarizer):
 
                 images.append(frame)
 
-                match type:
-                    case 'train': 
-                        labels.append(train_label_list[label_pointer]) #For each frame, appends the label to that frame's respective index in the labels array
-                    case 'val':
-                        labels.append(val_label_list[label_pointer])
-                    case 'test':
-                        labels.append(test_label_list[label_pointer])
+                #match type:
+                    #case 'train': 
+                        #labels.append(train_label_list[label_pointer]) #For each frame, appends the label to that frame's respective index in the labels array
+                    #case 'val':
+                        #labels.append(val_label_list[label_pointer])
+                    #case 'test':
+                        #labels.append(test_label_list[label_pointer])
+                if type == 'train':
+                    labels.append(train_label_list[label_pointer]) 
+                elif type == 'val':
+                    labels.append(val_label_list[label_pointer])
+                else:
+                    labels.append(test_label_list[label_pointer])
             cap.release()
         labels = binarizer.transform(np.array(labels))
 
         yield (np.array(images), labels)
 
-train_gen = frame_generator(type='train', batch_size=8, binarizer=lb)
+BATCH_SIZE = 8
 
-test_gen = frame_generator(type='test', batch_size=8, binarizer=lb)
+NUM_EPOCHS = 5
+
+train_gen = frame_generator(type='train', batch_size=BATCH_SIZE, binarizer=lb)
+
+test_gen = frame_generator(type='test', batch_size=BATCH_SIZE, binarizer=lb)
 
 model = Sequential([Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)), MaxPooling2D((2, 2)), Conv2D(64, (3, 3), activation='relu'),  MaxPooling2D((2, 2)), Flatten(), Dense(64, activation='relu'), Dense(num_classes, activation='softmax')])
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-model_compile_time = time.time()
 
-history = model.fit(x=train_gen, steps_per_epoch=(), validation_data=(frame_val, label_val), epochs=10, batch_size=32, verbose=1)
-train_time = time.time()
+history = model.fit(x=train_gen, steps_per_epoch=(num_train_frames // BATCH_SIZE), validation_data=test_gen, validation_steps=(num_val_frames // BATCH_SIZE), epochs=10, verbose=1)
